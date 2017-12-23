@@ -1,5 +1,6 @@
 extern crate codegen;
 extern crate prost_build;
+extern crate heck;
 
 mod client;
 mod server;
@@ -83,17 +84,24 @@ impl prost_build::ServiceGenerator for ServiceGenerator {
     fn generate(&self, service: prost_build::Service, buf: &mut String) {
         let inner = self.inner.borrow();
 
-        if inner.build_client {
-            // Add an extra new line to separate messages
-            write!(buf, "\n").unwrap();
+        // Add an extra new line to separate messages
+        write!(buf, "\n").unwrap();
 
-            self.client.generate(&service, buf).unwrap();
-        }
+        let root = if inner.build_client {
+            self.client.generate(&service, codegen::Scope::new())
+        } else {
+            codegen::Scope::new()
+        };
 
-        if inner.build_server {
-            write!(buf, "\n").unwrap();
-            self.server.generate(&service, buf).unwrap();
-        }
+        let root = if inner.build_server {
+            self.server.generate(&service, root) 
+        } else {
+            root
+        };
+
+        let mut fmt = codegen::Formatter::new(buf);
+        root.fmt(&mut fmt).unwrap();
+
     }
 }
 

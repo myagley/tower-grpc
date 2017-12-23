@@ -1,6 +1,5 @@
 use codegen;
 use prost_build;
-
 use std::fmt;
 
 /// Generates service code
@@ -9,29 +8,27 @@ pub struct ServiceGenerator;
 // ===== impl ServiceGenerator =====
 
 impl ServiceGenerator {
-    pub fn generate(&self, service: &prost_build::Service, buf: &mut String) -> fmt::Result {
-        let scope = self.define(service);
-        let mut fmt = codegen::Formatter::new(buf);
-
-        scope.fmt(&mut fmt)
+    pub fn generate(&self,
+                    service: &prost_build::Service,
+                    mut scope: codegen::Scope) 
+                    -> codegen::Scope {
+        self.define(service, &mut scope);
+        scope
     }
 
-    fn define(&self, service: &prost_build::Service) -> codegen::Scope {
+    fn define(&self, 
+              service: &prost_build::Service,
+              scope: &mut codegen::Scope) {
         // Create scope that contains the generated client code.
-        let mut scope = codegen::Scope::new();
+        let scope = scope.new_module("client")
+            .vis("pub")
+            .import("::tower_grpc::codegen::client", "*")
+            .scope()
+            ;
 
-        {
-            let module = scope.new_module("client")
-                .vis("pub")
-                .import("::tower_grpc::codegen::client", "*")
-                ;
-
-            self.import_message_types(service, module.scope());
-            self.define_client_struct(service, module.scope());
-            self.define_client_impl(service, module.scope());
-        }
-
-        scope
+        self.import_message_types(service, scope);
+        self.define_client_struct(service, scope);
+        self.define_client_impl(service, scope);
     }
 
     fn import_message_types(&self, service: &prost_build::Service, scope: &mut codegen::Scope) {

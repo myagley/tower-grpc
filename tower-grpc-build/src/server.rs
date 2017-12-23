@@ -8,17 +8,19 @@ pub struct ServiceGenerator;
 
 impl ServiceGenerator {
     /// Generate the gRPC server code
-    pub fn generate(&self, service: &prost_build::Service, buf: &mut String) -> fmt::Result {
-        let scope = self.define(service);
-        let mut fmt = codegen::Formatter::new(buf);
-
-        scope.fmt(&mut fmt)
+    pub fn generate(&self,
+                    service: &prost_build::Service,
+                    mut scope: codegen::Scope) 
+                    -> codegen::Scope {
+        scope.raw("\n");
+        self.define(service, &mut scope);
+        scope
     }
 
-    fn define(&self, service: &prost_build::Service) -> codegen::Scope {
+    fn define(&self, 
+              service: &prost_build::Service,
+              scope: &mut codegen::Scope) {
         // Create scope that contains the generated server code.
-        let mut scope = codegen::Scope::new();
-
         {
             let module = scope.new_module("server")
                 .vis("pub")
@@ -69,8 +71,6 @@ macro_rules! try_ready {
                 self.define_service_method(service, method, methods);
             }
         }
-
-        scope
     }
 
     fn define_service_trait(&self, service: &prost_build::Service, scope: &mut codegen::Scope) {
