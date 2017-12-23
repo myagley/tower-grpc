@@ -22,7 +22,7 @@ impl ServiceGenerator {
               scope: &mut codegen::Scope) {
         // Create scope that contains the generated server code.
         {
-            let module = scope.new_module("server")
+            let module = scope.module("server")
                 .vis("pub")
                 .import("::tower_grpc::codegen::server", "*")
                 ;
@@ -127,7 +127,7 @@ macro_rules! try_ready {
                 ;
         }
 
-        scope.push_trait(service_trait);
+        scope.push_trait(&service.name, service_trait);
     }
 
     fn define_server_struct(&self, service: &prost_build::Service, scope: &mut codegen::Scope) {
@@ -243,7 +243,7 @@ macro_rules! try_ready {
             call.push_block(route_block);
         }
 
-        scope.push_impl(service_impl);
+        scope.push_impl(&format!("tower::Service for {}", name), service_impl);
 
         scope.new_impl(&name)
             .generic("T")
