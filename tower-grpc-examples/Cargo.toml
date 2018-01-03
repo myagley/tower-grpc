@@ -55,3 +55,6 @@ tower-grpc-build = { path = "../tower-grpc-build" }
 
 [patch.crates-io]
 http = { git = "http://github.com/hyperium/http", rev = "5f362a32278891672f428d570d46387fe6896a5d" }
+
+# [patch."https://github.com/carllerche/h2"]
+# h2 = { git = "http://github.com/carllerche/h2", rev = "26e7a2d4165d500ee8426a10d2919e40663b4160" }
